@@ -1,10 +1,21 @@
-FROM ubuntu:20.04 as prepare
+# Build the docker image:
+# docker build --rm -t ababak/usd-build-ubuntu:1.3 .
+FROM ubuntu:22.04 as prepare
 
 ENV TZ=Europe
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt update
-RUN apt install -y \
+RUN apt-get update && \
+    apt-get install -y software-properties-common wget && \
+    # Obtain a copy of the signing key
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
+    gpg --dearmor - | \
+    tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
+    # Add the repository to your sources list
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ jammy main' && \
+    apt-get update
+
+RUN apt-get install -y \
     build-essential \
     cmake \
     git \
