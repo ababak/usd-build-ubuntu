@@ -36,6 +36,7 @@ RUN python3 USD/build_scripts/build_usd.py --ptex --openvdb --openimageio --open
 FROM prepare as result
 COPY --from=build /usr/local/USD/bin /usr/local/USD/bin
 COPY --from=build /usr/local/USD/lib /usr/local/USD/lib
+COPY --from=build /usr/local/USD/plugin /usr/local/USD/plugin
 ENV PATH="$PATH:/usr/local/USD/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/USD/lib"
 ENV PYTHONPATH="$PYTHONPATH:/usr/local/USD/lib/python"
