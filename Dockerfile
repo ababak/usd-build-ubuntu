@@ -31,9 +31,7 @@ RUN apt-get install -y \
     # NOTE: start Xvfb server using commands:
     # export DISPLAY=:1
     # Xvfb :1 -screen 0 100x100x16 & 
-    xvfb \
-    # extra tools for interactive session
-    mc
+    xvfb
 
 # Overcome PEP 668 – Marking Python base environments as “externally managed”
 RUN printf "[global]\nbreak-system-packages = true" > /etc/pip.conf
@@ -42,17 +40,11 @@ RUN pip3 install PySide6 PyOpenGL jinja2
 # BUILD
 FROM prepare as build
 RUN git clone https://github.com/PixarAnimationStudios/USD
-# NOTE: USD 24.8 already uses TBB v2020.3.1.zip on Linux that works, no need to fix version
-# Use TBB v2020.3.3 tag to overcome the gcc-13 compile error 
-# RUN sed -i \
-#    's#/oneTBB/archive/refs/tags/v2020\.3\.zip#/oneTBB/archive/refs/tags/v2020\.3\.3\.zip#' \
-#    USD/build_scripts/build_usd.py
 # Use OpenColorIO v2.3.2 tag to overcome the gcc-13 compile error
 RUN sed -i \
-   's#/OpenColorIO/archive/refs/tags/v2\.1\.3\.zip#/OpenColorIO/archive/refs/tags/v2\.3\.2\.zip#' \
-   USD/build_scripts/build_usd.py
+    's#/OpenColorIO/archive/refs/tags/v2\.1\.3\.zip#/OpenColorIO/archive/refs/tags/v2\.3\.2\.zip#' \
+    USD/build_scripts/build_usd.py
 RUN python3 USD/build_scripts/build_usd.py \
-    --verbose \
     --ptex \
     --openvdb \
     --openimageio \
