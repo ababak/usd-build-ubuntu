@@ -1,5 +1,5 @@
 # Build the docker image:
-# docker build --rm -t ymesh/usd-build-ubuntu:1.3 .
+# docker build --rm -t ababak/usd-build-ubuntu:1.3 .
 FROM ubuntu:23.10 as prepare
 
 ENV TZ=Europe
@@ -17,8 +17,23 @@ RUN apt-get install -y \
     libxt-dev \
     python3 \
     python3-pip \
-    mc \
-    pkg-config
+    pkg-config \
+    # install missing libraries for Qt platform plugin libqxcb.so
+    # NOTE: lookup missing .so by call
+    # ldd /usr/local/lib/python3.11/dist-packages/PySide6/Qt/plugins/platforms/libqxcb.so
+    libxkbcommon-x11-0 \
+    libdbus-1-3 \
+    libxcb-cursor0 \
+    libxcb-shape0 \
+    libxcb-icccm4 \
+    libxcb-keysyms1 \
+    # install virtual framebuffer server for Qt apps
+    # NOTE: start Xvfb server using commands:
+    # export DISPLAY=:1
+    # Xvfb :1 -screen 0 100x100x16 & 
+    xvfb \
+    # extra tools for interactive session
+    mc
 
 # Overcome PEP 668 – Marking Python base environments as “externally managed”
 RUN printf "[global]\nbreak-system-packages = true" > /etc/pip.conf
@@ -26,22 +41,18 @@ RUN pip3 install PySide6 PyOpenGL jinja2
 
 # BUILD
 FROM prepare as build
-# RUN pwd
 RUN git clone https://github.com/PixarAnimationStudios/USD
-# Use TBB v2020.3.3 tag to overcome the gcc-13 compile error
-RUN sed -i \
-   's#/oneTBB/archive/refs/tags/v2020\.3\.zip#/oneTBB/archive/refs/tags/v2020\.3\.3\.zip#' \
-   USD/build_scripts/build_usd.py
+# NOTE: USD 24.8 already uses TBB v2020.3.1.zip on Linux that works, no need to fix version
+# Use TBB v2020.3.3 tag to overcome the gcc-13 compile error 
+# RUN sed -i \
+#    's#/oneTBB/archive/refs/tags/v2020\.3\.zip#/oneTBB/archive/refs/tags/v2020\.3\.3\.zip#' \
+#    USD/build_scripts/build_usd.py
 # Use OpenColorIO v2.3.2 tag to overcome the gcc-13 compile error
 RUN sed -i \
    's#/OpenColorIO/archive/refs/tags/v2\.1\.3\.zip#/OpenColorIO/archive/refs/tags/v2\.3\.2\.zip#' \
    USD/build_scripts/build_usd.py
-RUN cat USD/build_scripts/build_usd.py
-# RUN pwd
 RUN python3 USD/build_scripts/build_usd.py \
     --verbose \
-    --src /usr/local/USD/src \
-    --build /usr/local/USD/build \
     --ptex \
     --openvdb \
     --openimageio \
@@ -55,11 +66,12 @@ RUN python3 USD/build_scripts/build_usd.py \
 
 # RESULT
 FROM prepare as result
-# COPY --from=build /usr/local/USD/bin /usr/local/USD/bin
-# COPY --from=build /usr/local/USD/lib /usr/local/USD/lib
-# COPY --from=build /usr/local/USD/plugin /usr/local/USD/plugin
+COPY --from=build /usr/local/USD/bin /usr/local/USD/bin
+COPY --from=build /usr/local/USD/lib /usr/local/USD/lib
+COPY --from=build /usr/local/USD/plugin /usr/local/USD/plugin
 ENV PATH="$PATH:/usr/local/USD/bin"
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/USD/lib"
-ENV PYTHONPATH="$PYTHONPATH:/usr/local/USD/lib/python"
+# Add paths to system libraries too 
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/USD/lib:/usr/lib/x86_64-linux-gnu"
+ENV PYTHONPATH="$PYTHONPATH:/usr/local/USD/lib/python:/usr/local/lib/python3.11/dist-packages"
 
 WORKDIR /opt/
