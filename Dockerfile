@@ -17,19 +17,29 @@ RUN apt-get install -y \
     libxt-dev \
     python3 \
     python3-pip \
-    pkg-config
+    pkg-config \
+    # install missing libraries for Qt platform plugin libqxcb.so
+    # NOTE: lookup missing .so by call
+    # ldd /usr/local/lib/python3.11/dist-packages/PySide6/Qt/plugins/platforms/libqxcb.so
+    libxkbcommon-x11-0 \
+    libdbus-1-3 \
+    libxcb-cursor0 \
+    libxcb-shape0 \
+    libxcb-icccm4 \
+    libxcb-keysyms1 \
+    # install virtual framebuffer server for Qt apps
+    # NOTE: start Xvfb server using commands:
+    # export DISPLAY=:1
+    # Xvfb :1 -screen 0 100x100x16 & 
+    xvfb
 
 # Overcome PEP 668 – Marking Python base environments as “externally managed”
 RUN printf "[global]\nbreak-system-packages = true" > /etc/pip.conf
-RUN pip3 install PySide2 PyOpenGL jinja2
+RUN pip3 install PySide6 PyOpenGL jinja2
 
 # BUILD
 FROM prepare as build
 RUN git clone https://github.com/PixarAnimationStudios/USD
-# Use TBB v2020.3.3 tag to overcome the gcc-13 compile error
-RUN sed -i \
-    's#/oneTBB/archive/refs/tags/v2020\.3\.zip#/oneTBB/archive/refs/tags/v2020\.3\.3\.zip#' \
-    USD/build_scripts/build_usd.py
 # Use OpenColorIO v2.3.2 tag to overcome the gcc-13 compile error
 RUN sed -i \
     's#/OpenColorIO/archive/refs/tags/v2\.1\.3\.zip#/OpenColorIO/archive/refs/tags/v2\.3\.2\.zip#' \
@@ -44,7 +54,6 @@ RUN python3 USD/build_scripts/build_usd.py \
     --no-examples \
     --no-tutorials \
     --no-docs \
-    --no-usdview \
     /usr/local/USD
 
 # RESULT
