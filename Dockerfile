@@ -62,8 +62,7 @@ COPY --from=build /usr/local/USD/bin /usr/local/USD/bin
 COPY --from=build /usr/local/USD/lib /usr/local/USD/lib
 COPY --from=build /usr/local/USD/plugin /usr/local/USD/plugin
 ENV PATH="$PATH:/usr/local/USD/bin"
-# Add paths to system libraries too for .so needed by PySide6 Qt
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/USD/lib:/usr/lib/x86_64-linux-gnu"
-ENV PYTHONPATH="$PYTHONPATH:/usr/local/USD/lib/python:/usr/local/lib/python3.11/dist-packages"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/USD/lib"
+ENV PYTHONPATH="$PYTHONPATH:/usr/local/USD/lib/python"
 
 WORKDIR /opt/
