@@ -1,5 +1,5 @@
 # Build the docker image:
-# docker build --rm -t ababak/usd-build-ubuntu:1.3 .
+# docker build --rm -t ababak/usd-build-ubuntu:1.4.1 .
 FROM ubuntu:23.10 as prepare
 
 ENV TZ=Europe
@@ -11,6 +11,7 @@ RUN apt-get install -y \
     build-essential \
     cmake \
     git \
+    wget \
     libglew-dev \
     libglib2.0-0 \
     libx11-dev \
