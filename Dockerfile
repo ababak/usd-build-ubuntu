@@ -1,6 +1,6 @@
 # Build the docker image:
-# docker build --rm -t ababak/usd-build-ubuntu:1.4.1 .
-FROM ubuntu:23.10 as prepare
+# docker build --rm -t ababak/usd-build-ubuntu:1.4.2 .
+FROM ubuntu:24.04 as prepare
 
 ENV TZ=Europe
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -28,6 +28,8 @@ RUN apt-get install -y \
     libxcb-shape0 \
     libxcb-icccm4 \
     libxcb-keysyms1 \
+    tzdata \
+    vim \
     # install virtual framebuffer server for Qt apps
     # NOTE: start Xvfb server using commands:
     # export DISPLAY=:1
