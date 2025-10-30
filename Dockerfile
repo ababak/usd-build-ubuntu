@@ -42,7 +42,7 @@ RUN pip3 install PySide6 PyOpenGL jinja2
 
 # BUILD
 FROM prepare as build
-RUN git clone https://github.com/PixarAnimationStudios/USD
+RUN git clone --depth 1 --single-branch --branch v25.05 https://github.com/PixarAnimationStudios/USD
 # Use OpenColorIO v2.3.2 tag to overcome the gcc-13 compile error
 RUN sed -i \
     's#/OpenColorIO/archive/refs/tags/v2\.1\.3\.zip#/OpenColorIO/archive/refs/tags/v2\.3\.2\.zip#' \
